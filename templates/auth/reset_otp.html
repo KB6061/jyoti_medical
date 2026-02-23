@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="max-width:400px; margin:60px auto; background:white; padding:25px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+    <h2 style="margin-top:0; text-align:center;">Reset Password</h2>
+    <p style="font-size:14px; color:#555;">
+        Enter your User ID, OTP shown earlier, and new password.
+    </p>
+    <form method="post">
+        {{ form.hidden_tag() }}
+        <div style="margin-bottom:15px;">
+            {{ form.username.label }}<br>
+            {{ form.username(class="form-control") }}
+        </div>
+        <div style="margin-bottom:15px;">
+            {{ form.otp.label }}<br>
+            {{ form.otp(class="form-control") }}
+        </div>
+        <div style="margin-bottom:15px;">
+            {{ form.new_password.label }}<br>
+            {{ form.new_password(class="form-control") }}
+        </div>
+        <div style="text-align:center;">
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
+    </form>
+</div>
+{% endblock %}

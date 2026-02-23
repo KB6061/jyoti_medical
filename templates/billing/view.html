@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+/* Excel-style table */
+.excel-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;   /* ⭐ Forces equal column width */
+    font-size: 14px;
+}
+
+@media print {
+    .footer,
+    .fixed-footer,
+    .sidebar,
+    .navbar,
+    .topbar,
+    .low-stock-alert,
+    .print-hide {
+        display: none !important;
+        visibility: hidden !important;
+    }
+}
+
+.excel-table th,
+.excel-table td {
+    border: 1px solid #444;
+    padding: 6px 8px;
+    word-wrap: break-word; /* ⭐ Prevents text from hiding */
+    white-space: normal;   /* ⭐ Allows wrapping */
+}
+
+/* Print Fix */
+@media print {
+    body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .excel-table {
+        width: 100%;
+        table-layout: fixed; /* ⭐ Prevents column collapse */
+    }
+
+    .excel-table th,
+    .excel-table td {
+        border: 1px solid #000 !important;
+        padding: 6px 8px;
+        font-size: 12px;
+    }
+
+    .print-hide {
+        display: none !important;
+    }
+
+    .invoice-box {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+}
+</style>
+
+{% if mode == "purchase" %}
+<!-- ========================================================= -->
+<!--                     PURCHASE VIEW                         -->
+<!-- ========================================================= -->
+
+<h2>Purchase {{ purchase.purchase_no }}</h2>
+
+<!-- HEADER TABLE -->
+<table class="excel-table">
+    <tr>
+        <th>Store</th>
+        <td>
+            Jyoti Medical Store<br>
+            Aurad-Basavakalyan Road, Mirkhal<br>
+            Basavakalyan, Karnataka - India (585416)<br>
+            Phone: +919663694243
+        </td>
+        <th>Purchase Details</th>
+        <td>
+            <strong>Purchase No:</strong> {{ purchase.purchase_no }}<br>
+            <strong>Invoice No:</strong> {{ purchase.invoice_no or '-' }}<br>
+            <strong>Invoice Date:</strong> {{ purchase.invoice_date or '-' }}<br>
+            <strong>Purchase Date:</strong> {{ purchase.purchase_date or '-' }}
+        </td>
+    </tr>
+</table>
+
+<!-- DISTRIBUTOR TABLE -->
+<table class="excel-table">
+    <tr>
+        <th>Distributor</th>
+        <td>
+            {% if distributor %}
+                {{ distributor.name }}<br>
+                {{ distributor.address or '' }}<br>
+                {{ distributor.phone or '' }}
+            {% else %}
+                N/A
+            {% endif %}
+        </td>
+    </tr>
+</table>
+
+<!-- ITEMS TABLE -->
+<h4>Items</h4>
+<table class="excel-table">
+    <thead>
+        <tr>
+            <th>Product</th>
+            <th>HSN</th>
+            <th>Batch</th>
+            <th>Expiry</th>
+            <th>Qty</th>
+            <th>Free</th>
+            <th>Purchase Price</th>
+            <th>MRP</th>
+            <th>Sale Price</th>
+            <th>GST%</th>
+            <th>CGST%</th>
+            <th>SGST%</th>
+            <th>Discount</th>
+            <th>Total</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for it in items %}
+        <tr>
+            <td>{{ it.product.name }}</td>
+            <td>{{ it.hsn_code }}</td>
+            <td>{{ it.batch_no }}</td>
+            <td>{{ it.expiry_date or '-' }}</td>
+            <td>{{ it.qty }}</td>
+            <td>{{ it.free_qty }}</td>
+            <td>{{ "%.2f"|format(it.purchase_price) }}</td>
+            <td>{{ "%.2f"|format(it.mrp) }}</td>
+            <td>{{ "%.2f"|format(it.sale_price) }}</td>
+            <td>{{ "%.2f"|format(it.gst_percent) }}</td>
+            <td>{{ "%.2f"|format(it.cgst_percent) }}</td>
+            <td>{{ "%.2f"|format(it.sgst_percent) }}</td>
+            <td>{{ "%.2f"|format(it.discount_amount) }}</td>
+            <td>{{ "%.2f"|format(it.line_total) }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- TOTALS TABLE -->
+<h4>Totals</h4>
+<table class="excel-table">
+    <tr><th>Subtotal</th><td>₹ {{ "%.2f"|format(purchase.subtotal) }}</td></tr>
+    <tr><th>Total Discount</th><td>₹ {{ "%.2f"|format(purchase.total_discount) }}</td></tr>
+    <tr><th>Total CGST</th><td>₹ {{ "%.2f"|format(purchase.total_cgst) }}</td></tr>
+    <tr><th>Total SGST</th><td>₹ {{ "%.2f"|format(purchase.total_sgst) }}</td></tr>
+    <tr><th>Grand Total</th><td><strong>₹ {{ "%.2f"|format(purchase.grand_total) }}</strong></td></tr>
+</table>
+
+<div class="invoice-footer">
+    <button onclick="window.print()" class="btn btn-primary print-hide">Print</button>
+    <a href="{{ url_for('purchase_list') }}" class="print-hide" style="margin-left:10px;">Back to Purchases</a>
+</div>
+
+{% else %}
+<!-- ========================================================= -->
+<!--                     BILLING VIEW                          -->
+<!-- ========================================================= -->
+
+<h2>Bill {{ bill.bill_no }}</h2>
+
+<!-- HEADER TABLE -->
+<table class="excel-table">
+    <tr>
+        <th>Store</th>
+        <td>
+            Jyoti Medical Store<br>
+            Aurad-Basavakalyan Road, Mirkhal<br>
+            Basavakalyan, Karnataka - India (585416)<br>
+            Phone: +919663694243
+        </td>
+        <th>Bill Details</th>
+        <td>
+            <strong>Bill:</strong> {{ bill.bill_no }}<br>
+            <strong>Date:</strong> {{ bill.date.strftime("%Y-%m-%d %H:%M") }}
+        </td>
+    </tr>
+</table>
+
+<!-- PATIENT TABLE -->
+<table class="excel-table">
+    <tr>
+        <th>Patient</th>
+        <td>
+            {% if patient %}
+                {{ patient.name }}<br>
+                {{ patient.address or '' }}<br>
+                {{ patient.phone or '' }}
+            {% else %}
+                N/A
+            {% endif %}
+        </td>
+    </tr>
+</table>
+
+<!-- ITEMS TABLE -->
+<table class="excel-table">
+    <thead>
+        <tr>
+            <th>Description</th>
+            <th>Qty</th>
+            <th>Unit Price</th>
+            <th>Discount</th>
+            <th>Total</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% set grand = 0 %}
+        {% for it in items %}
+            {% set line = (it.qty or 0) * (it.unit_price or 0) - (it.discount or 0) %}
+            {% if line < 0 %}
+                {% set line = 0 %}
+            {% endif %}
+            {% set grand = grand + line %}
+
+            <tr>
+                <td>{{ it.product_name }}</td>
+                <td>{{ it.qty }}</td>
+                <td>{{ "%.2f"|format(it.unit_price or 0) }}</td>
+                <td>{{ "%.2f"|format(it.discount or 0) }}</td>
+                <td>{{ "%.2f"|format(line) }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+
+    <tfoot>
+        <tr>
+            <th colspan="4">Total</th>
+            <td><strong>{{ "%.2f"|format(grand_total) }}</strong></td>
+        </tr>
+    </tfoot>
+</table>
+
+<div class="invoice-footer">
+    <button onclick="window.print()" class="btn btn-primary print-hide">Print</button>
+    <a href="{{ url_for('billing_list') }}" class="print-hide" style="margin-left:10px;">Back to Billing</a>
+</div>
+
+{% endif %}
+
+{% endblock %}

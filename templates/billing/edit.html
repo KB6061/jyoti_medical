@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    .excel-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+    .excel-table th,
+    .excel-table td {
+        border: 1px solid #444;
+        padding: 6px 8px;
+    }
+    .excel-table th {
+        background: #f0f0f0;
+        font-weight: bold;
+    }
+</style>
+
+{% if mode == "purchase" %}
+<!-- ========================================================= -->
+<!--                     PURCHASE EDIT                         -->
+<!-- ========================================================= -->
+
+<h2>Edit Purchase {{ purchase.purchase_no }}</h2>
+
+<form method="POST">
+
+    <table class="excel-table">
+        <tr>
+            <th>Invoice No</th>
+            <td><input type="text" name="invoice_no" value="{{ purchase.invoice_no }}"></td>
+
+            <th>Invoice Date</th>
+            <td><input type="date" name="invoice_date" value="{{ purchase.invoice_date }}"></td>
+        </tr>
+
+        <tr>
+            <th>Purchase Date</th>
+            <td><input type="date" name="purchase_date" value="{{ purchase.purchase_date }}"></td>
+
+            <th>Payment Status</th>
+            <td>
+                <select name="payment_status">
+                    <option value="Pending" {% if purchase.payment_status=='Pending' %}selected{% endif %}>Pending</option>
+                    <option value="Paid" {% if purchase.payment_status=='Paid' %}selected{% endif %}>Paid</option>
+                    <option value="Partial" {% if purchase.payment_status=='Partial' %}selected{% endif %}>Partial</option>
+                </select>
+            </td>
+        </tr>
+    </table>
+
+    <h3>Items</h3>
+
+    <table class="excel-table">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>HSN</th>
+                <th>Batch</th>
+                <th>Expiry</th>
+                <th>Qty</th>
+                <th>Free</th>
+                <th>Purchase Price</th>
+                <th>MRP</th>
+                <th>Sale Price</th>
+                <th>GST%</th>
+                <th>CGST%</th>
+                <th>SGST%</th>
+                <th>Discount</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for it in items %}
+            <tr>
+                <td>{{ it.product.name }}</td>
+                <td><input name="hsn_{{ it.id }}" value="{{ it.hsn_code }}"></td>
+                <td><input name="batch_{{ it.id }}" value="{{ it.batch_no }}"></td>
+                <td><input type="date" name="expiry_{{ it.id }}" value="{{ it.expiry_date }}"></td>
+                <td><input name="qty_{{ it.id }}" value="{{ it.qty }}"></td>
+                <td><input name="free_{{ it.id }}" value="{{ it.free_qty }}"></td>
+                <td><input name="pp_{{ it.id }}" value="{{ it.purchase_price }}"></td>
+                <td><input name="mrp_{{ it.id }}" value="{{ it.mrp }}"></td>
+                <td><input name="sp_{{ it.id }}" value="{{ it.sale_price }}"></td>
+                <td><input name="gst_{{ it.id }}" value="{{ it.gst_percent }}"></td>
+                <td><input name="cgst_{{ it.id }}" value="{{ it.cgst_percent }}"></td>
+                <td><input name="sgst_{{ it.id }}" value="{{ it.sgst_percent }}"></td>
+                <td><input name="disc_{{ it.id }}" value="{{ it.discount_amount }}"></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+    <a href="{{ url_for('purchase_list') }}" class="btn btn-secondary">Cancel</a>
+
+</form>
+
+{% else %}
+<!-- ========================================================= -->
+<!--                     BILLING EDIT                          -->
+<!-- ========================================================= -->
+
+<h2>Edit Bill #{{ bill.id }}</h2>
+
+<form method="POST">
+
+    <label>Patient</label>
+    <select name="patient_id">
+        {% for p in patients %}
+            <option value="{{ p.id }}" {% if p.id == bill.patient_id %}selected{% endif %}>
+                {{ p.name }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <table class="excel-table">
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th>Qty</th>
+                <th>Price</th>
+                <th>Discount</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for it in items %}
+            <tr>
+                <td><input name="item_desc" value="{{ it.product_name }}"></td>
+                <td><input name="item_qty" value="{{ it.qty }}"></td>
+                <td><input name="item_price" value="{{ it.unit_price }}"></td>
+                <td><input name="item_discount" value="{{ it.discount }}"></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+    <a href="{{ url_for('billing_list') }}" class="btn btn-secondary">Cancel</a>
+
+</form>
+
+{% endif %}
+
+{% endblock %}

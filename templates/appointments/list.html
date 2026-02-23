@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Appointments</h2>
+
+<!-- Search + New Appointment -->
+<div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+
+    <!-- Search Form -->
+    <form method="GET" action="{{ url_for('appointments_list') }}" style="display:flex; gap:10px;">
+        <input type="text"
+               name="search"
+               placeholder="Search patient name..."
+               value="{{ request.args.get('search', '') }}"
+               class="form-control"
+               style="width:220px;">
+        <button class="btn btn-primary">Search</button>
+    </form>
+
+    <!-- New Appointment Button -->
+    <a href="{{ url_for('appointments_new') }}" class="btn btn-success">+ New Appointment</a>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th align="left">Patient</th>
+            <th align="left">Doctor</th>
+            <th align="left">Time</th>
+            <th align="left">Status</th>
+            <th align="left">Reason</th>
+            <th align="left">Action</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for a in appointments %}
+        <tr>
+            <!-- Patient Name -->
+            <td>
+                {{ patients[a.patient_id].name if a.patient_id in patients else '-' }}
+            </td>
+
+            <!-- Doctor Name -->
+            <td>
+                {% if a.doctor_id and a.doctor_id in doctors %}
+                    {{ doctors[a.doctor_id].name }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+
+            <td>{{ a.appointment_time.strftime("%Y-%m-%d %H:%M") }}</td>
+            <td>{{ a.status }}</td>
+            <td>{{ a.reason or '-' }}</td>
+
+            <td>
+                {% if current_user.role == 'admin' %}
+                    <a href="{{ url_for('appointments_edit', aid=a.id) }}"
+                       class="btn btn-warning btn-sm">Edit</a>
+
+                    <form action="{{ url_for('appointments_delete', aid=a.id) }}"
+                          method="POST"
+                          style="display:inline;">
+                        <button class="btn btn-danger btn-sm"
+                                onclick="return confirm('Delete this appointment?');">
+                            Delete
+                        </button>
+                    </form>
+                {% else %}
+                    <span style="color:#777;">No actions</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="6" style="text-align:center; padding:15px; color:#777;">
+                No appointments found.
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Product Detail</h2>
+<div class="card" style="margin-bottom:20px;">
+    <h3>{{ product.name }}</h3>
+    <p><strong>SKU:</strong> {{ product.sku }}</p>
+    <p><strong>Brand:</strong> {{ product.brand or '-' }}</p>
+    <p><strong>Batch:</strong> {{ product.batch_no or '-' }}</p>
+    <p><strong>Expiry:</strong> {{ product.expiry_date or '-' }}</p>
+    <p><strong>Current Stock:</strong> {{ product.current_stock or 0 }}</p>
+    <p><strong>Purchase Price:</strong> {{ "%.2f"|format(product.purchase_price or 0) }}</p>
+    <p><strong>Sale Price:</strong> {{ "%.2f"|format(product.sale_price or 0) }}</p>
+    <p>
+        <a href="{{ url_for('product_edit', product_id=product.id) }}">Edit Product</a> |
+        <a href="{{ url_for('products') }}">Back to Inventory</a>
+    </p>
+</div>
+
+<div class="card">
+    <h4>Stock Movement History</h4>
+    <table>
+        <thead>
+            <tr>
+                <th align="left">Date/Time</th>
+                <th align="left">Type</th>
+                <th align="right">Quantity</th>
+                <th align="left">Reference</th>
+                <th align="left">Note</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in movements %}
+            <tr>
+                <td>{{ m.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
+                <td>{{ m.movement_type }}</td>
+                <td align="right">{{ m.quantity }}</td>
+                <td>{{ m.reference or '-' }}</td>
+                <td>{{ m.note or '-' }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" style="text-align:center; padding:15px; color:#777;">No stock movements recorded.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

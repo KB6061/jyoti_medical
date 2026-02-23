@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Doctors</h2>
+
+<!-- Search + Add Doctor -->
+<div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+
+    <!-- Search Form -->
+    <form method="GET" action="{{ url_for('doctor_search') }}" style="display:flex; gap:10px;">
+        <input type="text"
+               name="q"
+               placeholder="Search doctor name or specialization"
+               value="{{ request.args.get('q', '') }}"
+               class="form-control"
+               style="width:250px;">
+        <button class="btn btn-primary">Search</button>
+    </form>
+
+    <!-- Add Doctor Button -->
+    <a href="{{ url_for('doctors_new') }}" class="btn btn-success">+ Add Doctor</a>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th align="left">Name</th>
+            <th align="left">Specialization</th>
+            <th align="left">Phone</th>
+            <th align="left">Notes</th>
+            <th align="center">Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for d in doctors %}
+        <tr>
+
+            <!-- Doctor Name links to View page -->
+            <td>
+                <a href="{{ url_for('doctor_detail', doctor_id=d.id) }}">
+                    {{ d.name }}
+                </a>
+            </td>
+
+            <td>{{ d.specialization or '-' }}</td>
+            <td>{{ d.phone or '-' }}</td>
+            <td>{{ d.notes or '-' }}</td>
+
+            <td align="center">
+
+                <!-- View -->
+                <a href="{{ url_for('doctor_detail', doctor_id=d.id) }}"
+                   class="btn btn-info btn-sm">View</a>
+
+                <!-- Edit -->
+                <a href="{{ url_for('doctors_edit', doctor_id=d.id) }}"
+                   class="btn btn-warning btn-sm">Edit</a>
+
+                <!-- Delete (Admin + Staff) -->
+                {% if current_user.role in ['admin', 'staff'] %}
+                <form action="{{ url_for('doctors_delete', doctor_id=d.id) }}"
+                      method="POST"
+                      style="display:inline;">
+                    <button class="btn btn-danger btn-sm"
+                            onclick="return confirm('Delete this doctor?');">
+                        Delete
+                    </button>
+                </form>
+                {% endif %}
+
+            </td>
+        </tr>
+
+        {% else %}
+        <tr>
+            <td colspan="5" style="text-align:center; padding:15px; color:#777;">
+                No doctors found.
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

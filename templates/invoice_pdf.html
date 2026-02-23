@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        @page { margin: 10mm; }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+        .invoice-box { width: 100%; }
+    </style>
+</head>
+<body>
+
+<h2 style="text-align:center; margin-bottom:5px;">Jyoti Medical Store</h2>
+<div style="text-align:center; font-size:12px; line-height:1.3;">
+    Aurad-Basavakalyan Road, Mirkhal, Basavakalyan, Karnataka - India (585416)<br>
+    Phone: +919663694243
+</div>
+
+<hr>
+
+<div>
+    <strong>Invoice:</strong> {{ sale.invoice_no }}<br>
+    <strong>Date:</strong> {{ sale.date.strftime("%Y-%m-%d %H:%M") }}<br>
+</div>
+
+<br>
+
+<div>
+    <strong>Customer:</strong><br>
+    {% if customer %}
+        {{ customer.name }}<br>
+        {{ customer.address or '' }}<br>
+        {{ customer.phone or '' }}
+    {% else %}
+        Walk-in Customer
+    {% endif %}
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Description</th>
+            <th align="right">Qty</th>
+            <th align="right">Unit Price</th>
+            <th align="right">Discount</th>
+            <th align="right">Total</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for it in items %}
+        {% set line = (it.qty or 0) * (it.unit_price or 0) - (it.discount or 0) %}
+        <tr>
+            <td>{{ it.product_id }}</td>
+            <td align="right">{{ it.qty }}</td>
+            <td align="right">{{ "%.2f"|format(it.unit_price or 0) }}</td>
+            <td align="right">{{ "%.2f"|format(it.discount or 0) }}</td>
+            <td align="right">{{ "%.2f"|format(line) }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+
+    <tfoot>
+        <tr>
+            <td colspan="4" align="right"><strong>Total:</strong></td>
+            <td align="right"><strong>{{ "%.2f"|format(grand_total) }}</strong></td>
+        </tr>
+    </tfoot>
+</table>
+
+<br><br>
+
+<div style="text-align:center; font-size:12px; color:#777;">
+    <strong>Jyoti Medical Store</strong><br>
+    Software Developed by @ Krishna Bhandare [+919096896318]
+</div>
+
+</body>
+</html>

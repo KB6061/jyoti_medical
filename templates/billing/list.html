@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+    .excel-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+    .excel-table th,
+    .excel-table td {
+        border: 1px solid #444;
+        padding: 6px 8px;
+        text-align: left;
+    }
+    .excel-table th {
+        background: #f0f0f0;
+        font-weight: bold;
+    }
+</style>
+
+{% if mode == "purchase" %}
+    <h2>Purchase List</h2>
+{% else %}
+    <h2>Billing List</h2>
+{% endif %}
+
+<!-- Add New Button -->
+<div style="text-align: right; margin-bottom: 15px;">
+    {% if mode == "purchase" %}
+        <a href="{{ url_for('billing_new') }}" class="btn btn-primary btn-sm">+ New Purchase</a>
+    {% else %}
+        <a href="{{ url_for('billing_new') }}" class="btn btn-primary btn-sm">+ New Billing</a>
+    {% endif %}
+</div>
+
+<table class="excel-table">
+
+{% if mode == "purchase" %}
+
+    <!-- ========================= -->
+    <!--      PURCHASE TABLE       -->
+    <!-- ========================= -->
+    <thead>
+        <tr>
+            <th>Purchase No</th>
+            <th>Distributor</th>
+            <th>Invoice No</th>
+            <th>Invoice Date</th>
+            <th>Purchase Date</th>
+            <th>Total Items</th>
+            <th>Grand Total</th>
+            <th>Payment</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for p in purchases %}
+        <tr>
+            <td>{{ p.purchase_no }}</td>
+
+            <td>
+                {% if p.distributor_id %}
+                    {{ distributors[p.distributor_id].name }}
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+
+            <td>{{ p.invoice_no or '-' }}</td>
+            <td>{{ p.invoice_date or '-' }}</td>
+            <td>{{ p.purchase_date or '-' }}</td>
+
+            <td>{{ p.items|length }}</td>
+
+            <td>₹ {{ "%.2f"|format(p.grand_total or 0) }}</td>
+
+            <td>
+                {% if p.payment_status == 'Paid' %}
+                    Paid
+                {% elif p.payment_status == 'Partial' %}
+                    Partial
+                {% else %}
+                    Pending
+                {% endif %}
+            </td>
+
+            <td>
+                <a href="{{ url_for('purchase_view', purchase_id=p.id) }}">View</a> |
+                <a href="{{ url_for('purchase_edit', purchase_id=p.id) }}">Edit</a> |
+                <form action="{{ url_for('purchase_delete', purchase_id=p.id) }}"
+                      method="POST" style="display:inline;">
+                    <button onclick="return confirm('Delete this purchase?');">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+
+{% else %}
+
+    <!-- ========================= -->
+    <!--        BILLING TABLE      -->
+    <!-- ========================= -->
+    <thead>
+        <tr>
+            <th>Bill No</th>
+            <th>Patient</th>
+            <th>Date</th>
+            <th>Total</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for b in bills %}
+        <tr>
+            <td>{{ b.id }}</td>
+            <td>{{ patients[b.patient_id].name if b.patient_id in patients else 'N/A' }}</td>
+            <td>{{ b.date }}</td>
+            <td>₹ {{ "%.2f"|format(b.total or 0) }}</td>
+
+            <td>
+                <a href="{{ url_for('billing_view', bill_id=b.id) }}">View</a> |
+                <a href="{{ url_for('billing_edit', bill_id=b.id) }}">Edit</a> |
+                <form action="{{ url_for('billing_delete', bill_id=b.id) }}"
+                      method="POST" style="display:inline;">
+                    <button onclick="return confirm('Delete this bill?');">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+
+{% endif %}
+
+</table>
+
+{% endblock %}

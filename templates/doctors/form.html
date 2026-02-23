@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ doctor and 'Edit Doctor' or 'Add Doctor' }}</h2>
+<form method="post">
+    {{ form.hidden_tag() }}
+    <div style="max-width:500px;">
+        <div style="margin-bottom:15px;">
+            {{ form.name.label }}<br>
+            {{ form.name(class="form-control") }}
+        </div>
+        <div style="margin-bottom:15px;">
+            {{ form.specialization.label }}<br>
+            {{ form.specialization(class="form-control") }}
+        </div>
+        <div style="margin-bottom:15px;">
+            {{ form.phone.label }}<br>
+            {{ form.phone(class="form-control") }}
+        </div>
+        <div style="margin-bottom:15px;">
+            {{ form.notes.label }}<br>
+            {{ form.notes(class="form-control") }}
+        </div>
+    </div>
+    <div style="margin-top:10px;">
+        {{ form.submit(class="btn btn-primary") }}
+        <a href="{{ url_for('doctors_list') }}" style="margin-left:10px;">Cancel</a>
+    </div>
+</form>
+{% endblock %}

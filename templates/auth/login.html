@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block top_right %}{% endblock %}
+{% block alerts %}{% endblock %}
+
+{% block content %}
+<div style="max-width:400px; margin:60px auto; background:white; padding:25px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+    <h2 style="margin-top:0; text-align:center;">Login</h2>
+    <form method="post">
+        {{ form.hidden_tag() }}
+        <div style="margin-bottom:15px;">
+            {{ form.username.label }}<br>
+            {{ form.username(class="form-control") }}
+        </div>
+        <div style="margin-bottom:15px;">
+            {{ form.password.label }}<br>
+            {{ form.password(class="form-control") }}
+        </div>
+        <div style="text-align:right; margin-bottom:10px;">
+            <a href="{{ url_for('forgot') }}">Forgot password?</a>
+        </div>
+        <div style="text-align:center;">
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
+    </form>
+</div>
+{% endblock %}
+

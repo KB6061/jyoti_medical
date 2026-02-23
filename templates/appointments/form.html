@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>New Appointment</h2>
+<form method="post">
+    {{ form.hidden_tag() }}
+    <div style="max-width:500px;">
+        <div style="margin-bottom:15px;">
+            {{ form.patient_id.label }}<br>
+            {{ form.patient_id(class="form-control") }}
+        </div>
+        <div style="margin-bottom:15px;">
+            {{ form.doctor_id.label }}<br>
+            {{ form.doctor_id(class="form-control") }}
+        </div>
+        <div style="margin-bottom:15px;">
+            {{ form.reason.label }}<br>
+            {{ form.reason(class="form-control") }}
+        </div>
+        <div style="margin-bottom:15px;">
+            {{ form.status.label }}<br>
+            {{ form.status(class="form-control") }}
+        </div>
+    </div>
+    <div style="margin-top:10px;">
+        {{ form.submit(class="btn btn-primary") }}
+        <a href="{{ url_for('appointments_list') }}" style="margin-left:10px;">Cancel</a>
+    </div>
+</form>
+{% endblock %}

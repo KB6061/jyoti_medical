@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>New Sale</h2>
+
+<form method="post">
+
+    <!-- Invoice Number (Auto-generated) -->
+    <div style="margin-bottom:15px; max-width:400px;">
+        <label>Invoice Number</label><br>
+        <input type="text"
+               name="invoice_no"
+               value="{{ invoice_no }}"
+               readonly
+               style="width:100%; padding:6px; background:#f1f1f1; font-weight:bold;">
+    </div>
+
+    <!-- Customer -->
+    <div style="margin-bottom:15px; max-width:400px;">
+        <label>Patient / Customer</label><br>
+        <select name="customer_id" style="width:100%; padding:6px;">
+            <option value="">-- Select --</option>
+            {% for c in customers %}
+            <option value="{{ c.id }}">{{ c.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <h3>Items</h3>
+
+    <table id="items-table" border="0" cellpadding="6" cellspacing="0"
+           style="width:100%; background:white; border-radius:8px; overflow:hidden; margin-bottom:10px;">
+        <thead style="background:#f1f1f1;">
+            <tr>
+                <th align="left">Product</th>
+                <th align="right">Qty</th>
+                <th align="right">Unit Price</th>
+                <th align="right">Discount</th>
+                <th align="right">Line Total</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="items-body">
+            <tr>
+                <td>
+                    <select name="product_id" style="width:100%; padding:4px;">
+                        <option value="">-- Select --</option>
+                        {% for p in products %}
+                        <option value="{{ p.id }}" data-price="{{ p.sale_price or 0 }}">{{ p.name }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td align="right">
+                    <input type="number" name="qty" value="1" min="1" style="width:60px; padding:4px;">
+                </td>
+                <td align="right">
+                    <input type="number" step="0.01" name="unit_price" value="0" style="width:80px; padding:4px;">
+                </td>
+                <td align="right">
+                    <input type="number" step="0.01" name="discount" value="0" style="width:80px; padding:4px;">
+                </td>
+                <td align="right" class="line-total">0.00</td>
+                <td>
+                    <button type="button" onclick="removeRow(this)" style="border:none; background:none; color:#c00; cursor:pointer;">X</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <button type="button" onclick="addRow()"
+            style="padding:4px 10px; background:#007bff; color:white; border:none; cursor:pointer; margin-bottom:10px;">
+        + Add Item
+    </button>
+
+    <div style="text-align:right; font-size:18px; margin-top:10px;">
+        <strong>Total: </strong><span id="grand-total">0.00</span>
+    </div>
+
+    <div style="margin-top:15px;">
+        <button type="submit" style="padding:8px 20px; background:#28a745; color:white; border:none; cursor:pointer;">
+            Save Sale
+        </button>
+        <a href="{{ url_for('sales_list') }}" style="margin-left:10px;">Cancel</a>
+    </div>
+
+</form>
+
+<script>
+function recalc() {
+    let rows = document.querySelectorAll('#items-body tr');
+    let grand = 0;
+    rows.forEach(function(row) {
+        let qty = parseFloat(row.querySelector('input[name="qty"]').value || 0);
+        let price = parseFloat(row.querySelector('input[name="unit_price"]').value || 0);
+        let disc = parseFloat(row.querySelector('input[name="discount"]').value || 0);
+        let line = qty * price - disc;
+        if (line < 0) line = 0;
+        row.querySelector('.line-total').innerText = line.toFixed(2);
+        grand += line;
+    });
+    document.getElementById('grand-total').innerText = grand.toFixed(2);
+}
+
+function addRow() {
+    let body = document.getElementById('items-body');
+    let first = body.querySelector('tr');
+    let clone = first.cloneNode(true);
+    clone.querySelector('select[name="product_id"]').selectedIndex = 0;
+    clone.querySelector('input[name="qty"]').value = 1;
+    clone.querySelector('input[name="unit_price"]').value = 0;
+    clone.querySelector('input[name="discount"]').value = 0;
+    clone.querySelector('.line-total').innerText = '0.00';
+    body.appendChild(clone);
+}
+
+function removeRow(btn) {
+    let body = document.getElementById('items-body');
+    if (body.querySelectorAll('tr').length > 1) {
+        btn.closest('tr').remove();
+        recalc();
+    }
+}
+
+document.getElementById('items-body').addEventListener('input', function(e) {
+    if (e.target.name === 'qty' || e.target.name === 'unit_price' || e.target.name === 'discount') {
+        recalc();
+    }
+});
+
+document.getElementById('items-body').addEventListener('change', function(e) {
+    if (e.target.name === 'product_id') {
+        let price = e.target.selectedOptions[0].getAttribute('data-price') || '0';
+        let row = e.target.closest('tr');
+        row.querySelector('input[name="unit_price"]').value = price;
+        recalc();
+    }
+});
+
+recalc();
+</script>
+
+{% endblock %}

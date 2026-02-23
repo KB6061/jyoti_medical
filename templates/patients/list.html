@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Patients</h2>
+
+<!-- TOP BAR: Search + Add Patient -->
+<div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+
+    <form method="get" style="display:flex; gap:8px;">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search patient..."
+               style="padding:6px; width:220px;">
+        <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+
+    <a href="{{ url_for('patient_new') }}" class="btn btn-success">+ Add Patient</a>
+
+</div>
+
+<!-- PATIENT TABLE -->
+<table class="patient-table">
+    <thead>
+        <tr>
+            <th style="width: 20%;">Name</th>
+            <th style="width: 15%;">Mobile</th>
+            <th style="width: 25%;">Address</th>
+            <th style="width: 15%;">Date Added</th>
+            <th style="width: 10%; text-align:center;">Detail</th>
+            <th style="width: 15%; text-align:center;">Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% if patients %}
+            {% for p in patients %}
+            <tr>
+                <td>{{ p.name }}</td>
+                <td>{{ p.phone }}</td>
+                <td>{{ p.address or '-' }}</td>
+                <td>{{ p.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+
+                <td style="text-align:center;">
+                    <button class="btn btn-info"
+                            onclick="openPatientDetail('{{ p.name }}',
+                                                       '{{ p.phone }}',
+                                                       '{{ p.address }}',
+                                                       `{{ p.description }}`)">
+                        View Detail
+                    </button>
+                </td>
+
+                <td style="text-align:center;">
+                    <a href="{{ url_for('patient_edit', patient_id=p.id) }}" class="btn btn-warning btn-sm">Edit</a>
+
+                    <form action="{{ url_for('patient_delete', patient_id=p.id) }}"
+                          method="post"
+                          style="display:inline;"
+                          onsubmit="return confirm('Delete this patient?');">
+                        <button class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        {% else %}
+            <tr>
+                <td colspan="6" style="text-align:center; padding:20px; color:#900; font-weight:bold;">
+                    Patient details not available for "<span style="color:black;">{{ query }}</span>"
+                </td>
+            </tr>
+        {% endif %}
+    </tbody>
+</table>
+
+
+<!-- MODAL POPUP -->
+<div id="patientModal"
+     style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+            background:rgba(0,0,0,0.5); justify-content:center; align-items:center;">
+
+    <div style="background:white; padding:20px; width:400px; border-radius:8px;">
+        <h3>Patient Details</h3>
+
+        <p><strong>Name:</strong> <span id="m_name"></span></p>
+        <p><strong>Mobile:</strong> <span id="m_mobile"></span></p>
+        <p><strong>Address:</strong> <span id="m_address"></span></p>
+        <p><strong>Description:</strong> <span id="m_desc"></span></p>
+
+        <div style="text-align:right; margin-top:15px;">
+            <button class="btn btn-secondary" onclick="closePatientModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function openPatientDetail(name, mobile, address, desc) {
+    document.getElementById('m_name').innerText = name;
+    document.getElementById('m_mobile').innerText = mobile;
+    document.getElementById('m_address').innerText = address || '-';
+    document.getElementById('m_desc').innerText = desc || '-';
+
+    document.getElementById('patientModal').style.display = 'flex';
+}
+
+function closePatientModal() {
+    document.getElementById('patientModal').style.display = 'none';
+}
+</script>
+
+{% endblock %}

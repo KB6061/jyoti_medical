@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{# --- This ensures the marquee alert from base.html appears --- #}
+{% block alerts %}
+    {{ super() }}
+{% endblock %}
+
+{% block content %}
+<h2>Dashboard</h2>
+
+<div style="display:flex; gap:20px; flex-wrap:wrap; margin-top:20px;">
+
+    <div class="card">
+        <h4>Low Stock Items</h4>
+        <p style="font-size:24px; font-weight:bold;">{{ low_stock_count }}</p>
+        <a href="{{ url_for('report_stock') }}">View details</a>
+    </div>
+
+    <div class="card">
+        <h4>Expiring in 30 days</h4>
+        <p style="font-size:24px; font-weight:bold;">{{ expiring_30 }}</p>
+        <a href="{{ url_for('report_expiry', days=30) }}">View details</a>
+    </div>
+
+    <div class="card">
+        <h4>Today's Sales</h4>
+        <p style="font-size:24px; font-weight:bold;">{{ "%.2f"|format(today_total or 0) }}</p>
+        <p style="font-size:12px; color:#777;">Yesterday: {{ "%.2f"|format(yesterday_total or 0) }}</p>
+    </div>
+
+</div>
+
+<div class="card" style="margin-top:20px;">
+    <h4>Last 7 Days Sales</h4>
+    <table>
+        <thead>
+            <tr>
+                <th align="left">Date</th>
+                <th align="right">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for d, total in last7 %}
+            <tr>
+                <td>{{ d.strftime("%Y-%m-%d") }}</td>
+                <td align="right">{{ "%.2f"|format(total or 0) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>{{ project_title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        @media print {
+            .sidebar, .topbar, button, a.print-hide, .alert-marquee {
+                display: none !important;
+            }
+            .content {
+                margin: 0;
+                padding: 0;
+                width: 100%;
+            }
+        }
+
+        /* Sorting arrows */
+        th.sortable {
+            cursor: pointer;
+            position: relative;
+            user-select: none;
+            padding-right: 18px;
+        }
+
+        th.sortable::after {
+            content: "";
+            position: absolute;
+            right: 6px;
+            font-size: 12px;
+            color: #555;
+        }
+
+        th.sort-asc::after {
+            content: "▲";
+        }
+
+        th.sort-desc::after {
+            content: "▼";
+        }
+
+        /* Marquee styling */
+        .alert-marquee {
+            position: relative;
+            z-index: 998;
+        }
+
+        .title-logo {
+          height: 80px;
+          width: auto;
+          margin-top: 2px;
+         }
+
+         .fixed-footer a:hover {
+             opacity: 0.3;
+         }
+	 
+        .fixed-footer a {
+            color: inherit !important;
+            text-decoration: none !important;
+         }
+
+        .fixed-footer svg {
+            fill: currentColor;
+            margin-right: 4px;
+        } 
+
+
+    </style>
+</head>
+<body>
+
+<!-- FIXED HEADER -->
+<div class="fixed-header">
+    <div class="topbar">
+<div style="flex:1; text-align:center; line-height:1.3; display:flex; flex-direction:column; align-items:center;">
+    
+    <div style="display:flex; align-items:center; gap:8px;">
+        <img src="{{ url_for('static', filename='logo.PNG') }}" class="title-logo">
+        <strong style="font-size:20px;">Jyoti Medical Store</strong>
+    </div>
+
+    <span style="font-size:12px;">
+        Aurad-Basavakalyan Road, Mirkhal, Basavakalyan, Karnataka - India (585416)
+    </span>
+</div>
+
+
+        {% block top_right %}
+        <div style="position:absolute; right:20px; font-size:13px; display:flex; align-items:center; gap:6px;">
+            <span style="font-size:15px;">🕒</span>
+            <span id="live_datetime"></span>
+        </div>
+        {% endblock %}
+    </div>
+</div>
+
+<!-- ⭐ SPACER BELOW FIXED HEADER -->
+<div style="height: 70px;"></div>
+
+<!-- ⭐ ALERT BLOCK -->
+{% block alerts %}
+{% if low_stock or expiring_soon %}
+<div class="alert-marquee print-hide"
+     style="
+        background:#ffe5e5;
+        padding:6px 10px;
+        color:#900;
+        font-weight:bold;
+        white-space:nowrap;
+        overflow:hidden;
+        border-bottom:1px solid #ffb3b3;
+     ">
+    <marquee behavior="scroll" direction="left" scrollamount="5">
+
+        {% if low_stock %}
+            ⚠️ Low Stock:
+            {% for p in low_stock %}
+                {{ p.name }} ({{ p.current_stock }}) &nbsp;&nbsp; | &nbsp;&nbsp;
+            {% endfor %}
+        {% endif %}
+
+        {% if expiring_soon %}
+            ⚠️ Expiring Soon:
+            {% for p in expiring_soon %}
+                {{ p.name }} ({{ p.expiry_date }}) &nbsp;&nbsp; | &nbsp;&nbsp;
+            {% endfor %}
+        {% endif %}
+
+    </marquee>
+</div>
+{% endif %}
+{% endblock %}
+
+<script>
+function updateIST() {
+    const now = new Date();
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const ist = new Date(utc + (5.5 * 60 * 60 * 1000));
+
+    const options = {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    };
+
+    document.getElementById('live_datetime').innerText =
+        ist.toLocaleString('en-IN', options) + " IST";
+}
+
+setInterval(updateIST, 1000);
+updateIST();
+</script>
+
+<div class="layout">
+
+{% if current_user.is_authenticated %}
+<div class="sidebar">
+    <div class="profile-card">
+        <div class="initials-circle">{{ initials }}</div>
+        <div><strong>{{ display_name }}</strong></div>
+    </div>
+
+    <a href="{{ url_for('dashboard') }}" class="menu-item">📊 Dashboard</a>
+    <a href="{{ url_for('products') }}" class="menu-item">📦 Products</a>
+    <a href="{{ url_for('sales_list') }}" class="menu-item">💰 Sales</a>
+
+    <li class="has-submenu menu-parent" onclick="toggleMenu('purchaseMenu')">
+        <span class="menu-arrow" id="purchaseArrow">▶</span>
+        <a href="#">🧾 Purchases</a>
+    </li>
+
+    <ul id="purchaseMenu" class="submenu" style="display:none;">
+        <li><a href="{{ url_for('billing_new') }}">New Purchase</a></li>
+        <li><a href="{{ url_for('purchase_list') }}">Purchase List</a></li>
+        <li><a href="{{ url_for('distributor_list') }}">Distributors</a></li>
+    </ul>
+
+    <a href="{{ url_for('patients') }}" class="menu-item">🧑‍⚕️ Patients</a>
+    <a href="{{ url_for('appointments_list') }}" class="menu-item">📅 Appointments</a>
+    <a href="{{ url_for('doctors_list') }}" class="menu-item">🩺 Doctors</a>
+    <a href="{{ url_for('report_expiry') }}" class="menu-item">📑 Reports</a>
+
+    {% if current_user.role == 'admin' %}
+    <a href="{{ url_for('users_list') }}" class="menu-item">👥 Users</a>
+    {% endif %}
+
+    <a href="{{ url_for('guide') }}" class="menu-item">📘 Guide</a>
+    <a href="{{ url_for('logout') }}" class="menu-item">🚪 Logout</a>
+</div>
+{% endif %}
+
+
+
+    <div class="content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, msg in messages %}
+                    <div class="flash flash-{{ category }}">{{ msg }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+</div>
+
+<div class="fixed-footer">
+    Software Developed by - Krishna Bhandare [+919096896318]  
+    &nbsp;&nbsp;
+
+    <!-- Support (Email) -->
+    <a href="mailto:bhandare.krishna5@gmail.com" target="_blank" rel="noopener noreferrer">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align:middle;">
+            <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v.217l-8 4.8-8-4.8V4z"/>
+            <path d="M0 6.383v5.617a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6.383l-7.555 4.533a1 1 0 0 1-1.11 0L0 6.383z"/>
+        </svg>
+        Support
+    </a> |
+
+    <!-- Facebook -->
+    <a href="https://m.facebook.com/public/Bhandare-Krishna/" target="_blank" rel="noopener noreferrer">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align:middle;">
+            <path d="M8.94 6.5H10.5V4H8.94C7.64 4 7 4.67 7 5.94V7H5v2.5h2v6h2.5v-6h2l.5-2.5h-2.5v-.56c0-.33.17-.44.44-.44z"/>
+        </svg>
+        Facebook
+    </a> |
+
+    <!-- WhatsApp -->
+    <a href="https://wa.me/919096896318" target="_blank" rel="noopener noreferrer">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align:middle;">
+            <path d="M13.6 2.4A7.9 7.9 0 0 0 8 0a7.9 7.9 0 0 0-7.9 7.9c0 1.4.4 2.8 1.1 4L0 16l4.3-1.1a7.9 7.9 0 0 0 3.7.9h.1A7.9 7.9 0 0 0 16 7.9c0-2.1-.8-4-2.4-5.5zM8 14.5c-1.2 0-2.3-.3-3.3-.9l-.2-.1-2.5.7.7-2.4-.2-.3a6.5 6.5 0 1 1 5.5 3z"/>
+            <path d="M11.2 9.7c-.2-.1-1.2-.6-1.4-.7-.2-.1-.4-.1-.5.1-.1.2-.6.7-.7.8-.1.1-.3.1-.5 0-.2-.1-.9-.3-1.7-1-.6-.5-1-1.2-1.1-1.4-.1-.2 0-.3.1-.4l.4-.5c.1-.1.1-.2.2-.3.1-.1.1-.2 0-.4-.1-.2-.5-1.2-.7-1.6-.2-.4-.4-.3-.5-.3h-.4c-.2 0-.4.1-.5.2-.2.2-.7.7-.7 1.7 0 1 .7 2 1 2.3.1.2 1.4 2.2 3.4 3.1.5.2.9.4 1.2.5.5.2 1 .2 1.4.1.4-.1 1.2-.5 1.4-1 .2-.5.2-.9.2-1 0-.1-.2-.2-.4-.3z"/>
+        </svg>
+        WhatsApp
+    </a> |
+
+    <!-- LinkedIn -->
+    <a href="https://www.linkedin.com/in/krishna-bhandare-893b74102" target="_blank" rel="noopener noreferrer">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align:middle;">
+            <path d="M1.146 1.146A1.5 1.5 0 1 1 3.5 3.5 1.5 1.5 0 0 1 1.146 1.146zM0 5h3v11H0V5zm5 0h3v1.7h.04c.42-.8 1.44-1.7 2.96-1.7C14.1 5 16 6.7 16 10v6h-3v-5.3c0-1.3-.02-3-1.9-3-1.9 0-2.2 1.4-2.2 2.9V16H5V5z"/>
+        </svg>
+        LinkedIn
+    </a> |
+
+    <!-- Instagram -->
+    <a href="https://www.instagram.com/reel/CmBQhjhAg4d/" target="_blank" rel="noopener noreferrer">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align:middle;">
+            <path d="M8 3a5 5 0 1 0 0 10A5 5 0 0 0 8 3zm0 8.2A3.2 3.2 0 1 1 8 4.8a3.2 3.2 0 0 1 0 6.4z"/>
+            <circle cx="12.3" cy="3.7" r="1.2"/>
+            <path d="M4.5 0A4.5 4.5 0 0 0 0 4.5v7A4.5 4.5 0 0 0 4.5 16h7a4.5 4.5 0 0 0 4.5-4.5v-7A4.5 4.5 0 0 0 11.5 0h-7zm7 1.5A3 3 0 0 1 14 4.5v7a3 3 0 0 1-3 3h-7a3 3 0 0 1-3-3v-7a3 3 0 0 1 3-3h7z"/>
+        </svg>
+        Instagram
+    </a>
+
+    <br><br>
+
+    ©2026 MS+ (Medical Service). All rights reserved.<br>
+
+    <span style="font-size: 12px; opacity: 0.9;">
+        Version 1.0.3 • Last Updated: Feb 2026
+    </span>
+</div>
+
+
+<script>
+function sortTable(tableId, colIndex) {
+    const table = document.getElementById(tableId);
+    if (!table) return;
+
+    const tbody = table.querySelector("tbody");
+    const rows = Array.from(tbody.querySelectorAll("tr"));
+    const headers = table.querySelectorAll("th");
+
+    headers.forEach(h => h.classList.remove("sort-asc", "sort-desc"));
+
+    const isNumeric = (value) => !isNaN(parseFloat(value)) && isFinite(value);
+
+    let asc = table.getAttribute("data-sort-dir") !== "asc";
+    table.setAttribute("data-sort-dir", asc ? "asc" : "desc");
+
+    headers[colIndex].classList.add(asc ? "sort-asc" : "sort-desc");
+
+    rows.sort((a, b) => {
+        let A = a.children[colIndex].innerText.trim();
+        let B = b.children[colIndex].innerText.trim();
+
+        if (isNumeric(A) && isNumeric(B)) {
+            A = parseFloat(A);
+            B = parseFloat(B);
+        }
+
+        return asc
+            ? A.localeCompare(B, undefined, { numeric: true })
+            : B.localeCompare(A, undefined, { numeric: true });
+    });
+
+    rows.forEach(r => tbody.appendChild(r));
+}
+</script>
+
+<script>
+function globalSearch() {
+    const input = document.querySelector(".global-search-input");
+    if (!input) return;
+
+    const filter = input.value.toLowerCase();
+    const tables = document.querySelectorAll(".global-search-table");
+
+    tables.forEach(table => {
+        const rows = table.querySelectorAll("tbody tr");
+
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(filter) ? "" : "none";
+        });
+    });
+}
+</script>
+<script>
+function toggleMenu(id) {
+    const menu = document.getElementById(id);
+    const isOpen = menu.style.display === "block";
+
+    // Toggle manually
+    menu.style.display = isOpen ? "none" : "block";
+
+    // Save state
+    localStorage.setItem(id, menu.style.display);
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const purchaseMenu = document.getElementById("purchaseMenu");
+    const saved = localStorage.getItem("purchaseMenu");
+
+    if (saved === "block") {
+        purchaseMenu.style.display = "block";
+    }
+});
+
+</script>
+<script>
+    // Keep submenu open if user is inside purchase pages
+    if (window.location.href.includes("/purchase")) {
+        const menu = document.getElementById("purchaseMenu");
+        if (menu) {
+            menu.style.display = "block";
+            localStorage.setItem("purchaseMenu", "block");
+        }
+    }
+</script>
+<script>
+function toggleMenu(id) {
+    const menu = document.getElementById(id);
+    const arrow = document.getElementById("purchaseArrow");
+
+    const isOpen = menu.style.display === "block";
+
+    menu.style.display = isOpen ? "none" : "block";
+    arrow.classList.toggle("open", !isOpen);
+
+    localStorage.setItem(id, menu.style.display);
+    localStorage.setItem(id + "_arrow", !isOpen ? "open" : "closed");
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const menu = document.getElementById("purchaseMenu");
+    const arrow = document.getElementById("purchaseArrow");
+
+    // Restore saved state
+    const saved = localStorage.getItem("purchaseMenu");
+    const savedArrow = localStorage.getItem("purchaseMenu_arrow");
+
+    if (saved === "block") {
+        menu.style.display = "block";
+        arrow.classList.add("open");
+    }
+
+    // ⭐ Auto-expand when inside any purchase page
+    if (window.location.href.includes("/purchase")) {
+        menu.style.display = "block";
+        arrow.classList.add("open");
+        localStorage.setItem("purchaseMenu", "block");
+        localStorage.setItem("purchaseMenu_arrow", "open");
+    }
+
+    // Highlight active link
+    document.querySelectorAll(".sidebar a").forEach(a => {
+        if (a.href === window.location.href) {
+            a.classList.add("active");
+        }
+    });
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    const menuItems = document.querySelectorAll(".menu-item");
+    const purchaseMenu = document.getElementById("purchaseMenu");
+    const purchaseArrow = document.getElementById("purchaseArrow");
+
+    menuItems.forEach(item => {
+        item.addEventListener("click", function () {
+            if (purchaseMenu) {
+                purchaseMenu.style.display = "none";
+                purchaseArrow.classList.remove("open");
+
+                localStorage.setItem("purchaseMenu", "none");
+                localStorage.setItem("purchaseMenu_arrow", "closed");
+            }
+        });
+    });
+});
+
+</script>
+
+</body>
+</html>

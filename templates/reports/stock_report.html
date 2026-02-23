@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+.low-stock-row {
+    background-color: #ffe5e5 !important;   /* light red */
+}
+
+.expiring-soon-row {
+    background-color: #fff4cc !important;   /* light yellow */
+}
+</style>
+
+<h2>Stock Report</h2>
+
+<div style="display:flex; gap:20px; margin-bottom:20px; align-items:flex-end;">
+    <div>
+        <label>Select Report</label>
+        <select id="report-select" style="padding:6px; width:200px;">
+            <option value="/reports/stock"  {% if 'stock' in request.path %}selected{% endif %}>Stock Report</option>
+            <option value="/reports/sales"  {% if 'sales' in request.path %}selected{% endif %}>Sales Report</option>
+            <option value="/reports/expiry" {% if 'expiry' in request.path %}selected{% endif %}>Expiry Report</option>
+        </select>
+    </div>
+</div>
+
+<script>
+document.getElementById('report-select').addEventListener('change', function() {
+    window.location.href = this.value;
+});
+</script>
+
+<!-- ⭐ ADD TABLE ID -->
+<table id="stockTable" border="0" cellpadding="6" cellspacing="0"
+       style="width:100%; background:white; border-radius:8px; overflow:hidden;">
+
+    <thead style="background:#f1f1f1;">
+        <tr>
+            <th onclick="sortTable('stockTable', 0)" style="cursor:pointer;" align="left">SKU</th>
+            <th onclick="sortTable('stockTable', 1)" style="cursor:pointer;" align="left">Name</th>
+            <th onclick="sortTable('stockTable', 2)" style="cursor:pointer;" align="right">Stock</th>
+            <th onclick="sortTable('stockTable', 3)" style="cursor:pointer;" align="right">Purchase Price</th>
+            <th onclick="sortTable('stockTable', 4)" style="cursor:pointer;" align="right">Stock Value</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for p in products.items %}
+        {% set value = (p.current_stock or 0) * (p.purchase_price or 0) %}
+
+        <tr 
+            class="{% if p.current_stock < 10 %}low-stock-row{% endif %}"
+            style="border-bottom:1px solid #eee;"
+        >
+            <td>{{ p.sku }}</td>
+            <td>{{ p.name }}</td>
+            <td align="right">{{ p.current_stock or 0 }}</td>
+            <td align="right">{{ "%.2f"|format(p.purchase_price or 0) }}</td>
+            <td align="right">{{ "%.2f"|format(value) }}</td>
+        </tr>
+
+        {% else %}
+        <tr>
+            <td colspan="5" style="text-align:center; padding:15px; color:#777;">
+                No products found.
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+
+    <tfoot>
+        <tr>
+            <td colspan="4" align="right"><strong>Total Stock Value:</strong></td>
+            <td align="right"><strong>{{ "%.2f"|format(total_value or 0) }}</strong></td>
+        </tr>
+    </tfoot>
+
+</table>
+
+<div style="text-align: right; margin-top: 15px;">
+    {% if products.has_prev %}
+        <a href="{{ url_for('report_stock', page=products.prev_num) }}" class="btn btn-secondary">Previous</a>
+    {% endif %}
+    {% if products.has_next %}
+        <a href="{{ url_for('report_stock', page=products.next_num) }}" class="btn btn-primary">Next</a>
+    {% endif %}
+</div>
+
+{% endblock %}

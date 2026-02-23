@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>{{ product and "Edit Product" or "Add Product" }}</h2>
+
+<form method="post">
+    {{ form.hidden_tag() }}
+
+    <div style="display:flex; flex-wrap:wrap; gap:20px; margin-top:15px;">
+
+        <div style="flex:1; min-width:250px;">
+            {{ form.sku.label }}<br>
+            {{ form.sku(style="width:100%; padding:6px;") }}
+        </div>
+
+        <div style="flex:2; min-width:250px;">
+            {{ form.name.label }}<br>
+            {{ form.name(style="width:100%; padding:6px;") }}
+        </div>
+
+        <div style="flex:1; min-width:250px;">
+            {{ form.brand.label }}<br>
+            {{ form.brand(style="width:100%; padding:6px;") }}
+        </div>
+
+        <div style="flex:1; min-width:250px;">
+            {{ form.batch_no.label }}<br>
+            {{ form.batch_no(style="width:100%; padding:6px;") }}
+        </div>
+
+        <div style="flex:1; min-width:250px;">
+            {{ form.expiry_date.label }}<br>
+            {{ form.expiry_date(style="width:100%; padding:6px;", placeholder="YYYY-MM-DD") }}
+        </div>
+
+        <div style="flex:1; min-width:250px;">
+            {{ form.purchase_price.label }}<br>
+            {{ form.purchase_price(style="width:100%; padding:6px;") }}
+        </div>
+
+        <div style="flex:1; min-width:250px;">
+            {{ form.sale_price.label }}<br>
+            {{ form.sale_price(style="width:100%; padding:6px;") }}
+        </div>
+
+        <div style="flex:1; min-width:250px;">
+            {{ form.current_stock.label }}<br>
+            {{ form.current_stock(style="width:100%; padding:6px;") }}
+        </div>
+
+    </div>
+
+    <div style="margin-top:20px;">
+        {{ form.submit(style="padding:8px 20px; background:#005a9e; color:white; border:none; cursor:pointer;") }}
+        <a href="{{ url_for('products') }}" style="margin-left:10px;">Cancel</a>
+    </div>
+</form>
+
+{% endblock %}

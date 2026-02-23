@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Users</h2>
+
+<div style="margin-bottom:15px; text-align:right;">
+    <a href="{{ url_for('user_new') }}"
+       style="padding:6px 12px; background:#28a745; color:white; text-decoration:none; border-radius:4px;">
+        + Add User
+    </a>
+</div>
+
+<table border="0" cellpadding="6" cellspacing="0" style="width:100%; background:white; border-radius:8px; overflow:hidden;">
+    <thead style="background:#f1f1f1;">
+        <tr>
+            <th align="left">Username</th>
+            <th align="left">Name</th>
+            <th align="left">Email</th>
+            <th align="left">Role</th>
+            <th align="center">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for u in users %}
+        <tr style="border-bottom:1px solid #eee;">
+            <td>{{ u.username }}</td>
+            <td>{{ (u.first_name or '') ~ ' ' ~ (u.last_name or '') }}</td>
+            <td>{{ u.email or '-' }}</td>
+            <td>{{ u.role }}</td>
+            <td align="center">
+                <a href="{{ url_for('user_edit', user_id=u.id) }}">Edit</a>
+                {% if u.username != 'admin' %}
+                |
+                <form method="post" action="{{ url_for('user_delete', user_id=u.id) }}" style="display:inline;"
+                      onsubmit="return confirm('Delete this user?');">
+                    <button type="submit" style="border:none; background:none; color:#c00; cursor:pointer;">Delete</button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="5" style="text-align:center; padding:15px; color:#777;">
+                No users found.
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

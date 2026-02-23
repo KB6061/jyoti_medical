@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Products List</h2>
+
+<!-- Search + Add Product -->
+<div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+
+    <!-- Search Form -->
+    <form method="GET" action="{{ url_for('product_search') }}" style="display:flex; gap:10px;">
+        <input type="text"
+               name="q"
+               placeholder="Search by name, SKU, brand"
+               value="{{ request.args.get('q', '') }}"
+               class="form-control"
+               style="width:250px;">
+        <button class="btn btn-primary">Search</button>
+    </form>
+
+    <!-- Add Product Button -->
+    <a href="{{ url_for('product_new') }}" class="btn btn-success">+ Add Product</a>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th align="left">SKU</th>
+            <th align="left">Name</th>
+            <th align="left">Brand</th>
+            <th align="left">Batch</th>
+            <th align="left">Expiry</th>
+            <th align="right">Stock</th>
+            <th align="right">Sale Price</th>
+            <th align="center">Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for p in products.items %}
+        <tr>
+            <td>{{ p.sku }}</td>
+
+            <!-- Product Name links to View page -->
+            <td>
+                <a href="{{ url_for('product_detail', product_id=p.id) }}">
+                    {{ p.name }}
+                </a>
+            </td>
+
+            <td>{{ p.brand or '-' }}</td>
+            <td>{{ p.batch_no or '-' }}</td>
+            <td>{{ p.expiry_date or '-' }}</td>
+            <td align="right">{{ p.current_stock or 0 }}</td>
+            <td align="right">{{ "%.2f"|format(p.sale_price or 0) }}</td>
+
+            <td align="center">
+                <!-- View -->
+                <a href="{{ url_for('product_detail', product_id=p.id) }}"
+                   class="btn btn-info btn-sm">View</a>
+
+                <!-- Edit -->
+                <a href="{{ url_for('product_edit', product_id=p.id) }}"
+                   class="btn btn-warning btn-sm">Edit</a>
+
+                <!-- Delete (Admin + Staff) -->
+                {% if current_user.role in ['admin', 'staff'] %}
+                <form action="{{ url_for('product_delete', product_id=p.id) }}"
+                      method="POST"
+                      style="display:inline;">
+                    <button class="btn btn-danger btn-sm"
+                            onclick="return confirm('Delete this product?');">
+                        Delete
+                    </button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+
+        {% else %}
+        <tr>
+            <td colspan="8" style="text-align:center; padding:15px; color:#777;">
+                No products found.
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<div style="text-align: right; margin-top: 15px;">
+    {% if products.has_prev %}
+        <a href="{{ url_for('products', page=products.prev_num, q=request.args.get('q')) }}"
+           class="btn btn-secondary">Previous</a>
+    {% endif %}
+
+    {% if products.has_next %}
+        <a href="{{ url_for('products', page=products.next_num, q=request.args.get('q')) }}"
+           class="btn btn-primary">Next</a>
+    {% endif %}
+</div>
+
+
+{% endblock %}

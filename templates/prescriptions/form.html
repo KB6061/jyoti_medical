@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>New Prescription for {{ patient.name }}</h2>
+
+<form method="post">
+    {{ form.hidden_tag() }}
+
+    <div style="max-width:600px;">
+        <div style="margin-bottom:15px;">
+            {{ form.doctor_id.label }}<br>
+            {{ form.doctor_id(class="form-control") }}
+        </div>
+
+        <div style="margin-bottom:15px;">
+            {{ form.diagnosis.label }}<br>
+            {{ form.diagnosis(class="form-control") }}
+        </div>
+
+        <div style="margin-bottom:15px;">
+            {{ form.notes.label }}<br>
+            {{ form.notes(class="form-control") }}
+        </div>
+    </div>
+
+    <h3>Medicines</h3>
+
+    <table id="rx-items" style="margin-bottom:10px;">
+        <thead>
+            <tr>
+                <th align="left">Medicine</th>
+                <th align="left">Dosage</th>
+                <th align="left">Frequency</th>
+                <th align="left">Duration</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><input type="text" name="med_name" class="form-control"></td>
+                <td><input type="text" name="med_dosage" class="form-control"></td>
+                <td><input type="text" name="med_freq" class="form-control"></td>
+                <td><input type="text" name="med_duration" class="form-control"></td>
+                <td><button type="button" onclick="removeRxRow(this)" style="border:none; background:none; color:#c00; cursor:pointer;">X</button></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <button type="button" class="btn btn-primary" onclick="addRxRow()" style="margin-bottom:10px;">+ Add Medicine</button>
+
+    <div style="margin-top:10px;">
+        {{ form.submit(class="btn btn-success") }}
+        <a href="{{ url_for('prescriptions_list', patient_id=patient.id) }}" style="margin-left:10px;">Cancel</a>
+    </div>
+</form>
+
+<script>
+function addRxRow() {
+    let body = document.querySelector('#rx-items tbody');
+    let first = body.querySelector('tr');
+    let clone = first.cloneNode(true);
+    clone.querySelectorAll('input').forEach(i => i.value = '');
+    body.appendChild(clone);
+}
+function removeRxRow(btn) {
+    let body = document.querySelector('#rx-items tbody');
+    if (body.querySelectorAll('tr').length > 1) {
+        btn.closest('tr').remove();
+    }
+}
+</script>
+{% endblock %}

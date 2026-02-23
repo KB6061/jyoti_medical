@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>New Purchase</h2>
+
+<form method="POST">
+
+    <!-- ⭐ HEADER ROW 1 -->
+    <div class="form-row">
+        <div class="form-col">
+            <label>Distributor</label>
+            <select name="distributor_id">
+                <option value="">-- Select --</option>
+                {% for d in distributors %}
+                    <option value="{{ d.id }}">{{ d.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-col">
+            <label>Invoice No</label>
+            <input type="text" name="invoice_no">
+        </div>
+
+        <div class="form-col">
+            <label>Invoice Date</label>
+            <input type="date" name="invoice_date">
+        </div>
+
+        <div class="form-col">
+            <label>Purchase Date</label>
+            <input type="date" name="purchase_date" value="{{ today }}">
+        </div>
+    </div>
+
+    <!-- ⭐ HEADER ROW 2 -->
+    <div class="form-row">
+        <div class="form-col">
+            <label>Payment Status</label>
+            <select name="payment_status">
+                <option value="Pending">Pending</option>
+                <option value="Paid">Paid</option>
+                <option value="Partial">Partial</option>
+            </select>
+        </div>
+
+        <div class="form-col">
+            <label>Payment Mode</label>
+            <select name="payment_mode">
+                <option value="">-- Select --</option>
+                <option value="Cash">Cash</option>
+                <option value="UPI">UPI</option>
+                <option value="Bank">Bank</option>
+                <option value="Credit">Credit</option>
+            </select>
+        </div>
+
+        <div class="form-col" style="flex:1;">
+            <label>Notes</label>
+            <input type="text" name="notes">
+        </div>
+    </div>
+
+    <h3 style="margin-top:20px;">Purchase Items</h3>
+   <div class="table-scroll">
+
+    <table id="items-table">
+<thead>
+    <tr>
+        <th>Product</th>
+        <th>HSN</th>
+        <th>Batch</th>
+        <th>Expiry</th>
+        <th>Qty</th>
+        <th>Purchase Price</th>
+        <th>MRP</th>
+        <th>Sale Price</th>
+        <th>GST %</th>
+        <th>CGST %</th>
+        <th>SGST %</th>
+        <th>Discount</th>
+        <th>Free Qty</th>
+        <th></th>
+    </tr>
+</thead>
+
+<tbody id="items-body">
+    <tr>
+        <td>
+            <select name="product_id[]" class="form-control product-select" onchange="handleProductSelect(this)">
+                <option value="">-- Select --</option>
+                <option value="__new__">➕ Add New Product</option>
+
+                {% for p in products %}
+                <option value="{{ p.id }}">{{ p.name }}</option>
+                {% endfor %}
+            </select>
+        </td>
+
+        <td><input type="text" name="hsn_code[]" class="form-control"></td>
+        <td><input type="text" name="batch_no[]" class="form-control"></td>
+        <td><input type="date" name="expiry_date[]" class="form-control"></td>
+
+        <td><input type="number" name="qty[]" value="0" min="0" class="form-control"></td>
+
+        <td><input type="number" step="0.01" name="purchase_price[]" value="0" class="form-control"></td>
+        <td><input type="number" step="0.01" name="mrp[]" value="0" class="form-control"></td>
+        <td><input type="number" step="0.01" name="sale_price[]" value="0" class="form-control"></td>
+
+        <!-- ⭐ Correct GST order -->
+        <td><input type="number" step="0.01" name="gst_percent[]" value="0" class="form-control gst-field"></td>
+        <td><input type="number" step="0.01" name="cgst_percent[]" value="0" class="form-control cgst-field"></td>
+        <td><input type="number" step="0.01" name="sgst_percent[]" value="0" class="form-control sgst-field"></td>
+
+        <td><input type="number" step="0.01" name="discount_amount[]" value="0" class="form-control"></td>
+
+        <td><input type="number" name="free_qty[]" value="0" min="0" class="form-control"></td>
+
+        <td>
+            <button type="button" onclick="removeRow(this)" class="btn btn-danger btn-sm">✖</button>
+        </td>
+    </tr>
+</tbody>
+
+</table>
+
+    <button type="button" onclick="addItemRow()">+ Add Item</button>
+
+    <div style="margin-top:20px; text-align:right;">
+        <strong>Total:</strong> <span id="grand-total">0.00</span>
+    </div>
+
+    <div style="margin-top:15px;">
+        <button type="submit" class="btn btn-primary">Save Purchase</button>
+        <a href="{{ url_for('billing_list') }}" class="btn btn-secondary">Cancel</a>
+    </div>
+</form>
+
+<script>
+
+// ⭐ Fetch GST from backend based on product category
+async function applyGST(selectElement) {
+    const productId = selectElement.value;
+    if (!productId) return;
+
+    const response = await fetch(`/products/get/${productId}`);
+    if (!response.ok) return;
+
+    const data = await response.json();
+
+    const row = selectElement.closest("tr");
+
+    row.querySelector('input[name="gst_percent[]"]').value = data.gst_percent;
+    row.querySelector('input[name="cgst_percent[]"]').value = data.cgst_percent;
+    row.querySelector('input[name="sgst_percent[]"]').value = data.sgst_percent;
+}
+
+
+// ⭐ Add new row
+function addItemRow() {
+    const tbody = document.getElementById('items-body');
+    const firstRow = tbody.querySelector('tr');
+    const newRow = firstRow.cloneNode(true);
+
+    newRow.querySelectorAll('input').forEach(inp => {
+        if (inp.type === 'number') inp.value = 0;
+        else inp.value = '';
+    });
+
+    const select = newRow.querySelector('select[name="product_id[]"]');
+    select.selectedIndex = 0;
+    select.setAttribute("onchange", "handleProductSelect(this)");
+
+    tbody.appendChild(newRow);
+}
+
+
+// ⭐ Remove row
+function removeRow(btn) {
+    const tbody = document.getElementById('items-body');
+    if (tbody.rows.length > 1) {
+        btn.closest('tr').remove();
+    }
+}
+
+
+// ⭐ Handle product selection
+function handleProductSelect(selectElement) {
+    const value = selectElement.value;
+
+    if (value === "__new__") {
+        showNewProductInput(selectElement);
+    } else {
+        applyGST(selectElement);
+    }
+}
+
+
+// ⭐ Inline Add Product UI (with Category Dropdown)
+function showNewProductInput(selectElement) {
+    const cell = selectElement.closest("td");
+
+    selectElement.style.display = "none";
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.placeholder = "Enter new product name";
+    input.className = "form-control new-product-input";
+
+    const categorySelect = document.createElement("select");
+    categorySelect.className = "form-control";
+    categorySelect.style.marginTop = "5px";
+
+    categorySelect.innerHTML = `
+        <option value="medicine">Medicine (5%)</option>
+        <option value="ayurvedic">Ayurvedic (12%)</option>
+        <option value="cosmetic">Cosmetic (18%)</option>
+        <option value="fmcg">FMCG (18%)</option>
+        <option value="equipment">Equipment (18%)</option>
+        <option value="life_saving">Life Saving (0%)</option>
+        <option value="general">General (18%)</option>
+    `;
+
+    const saveBtn = document.createElement("button");
+    saveBtn.type = "button";
+    saveBtn.innerText = "Save";
+    saveBtn.className = "btn btn-success btn-sm";
+    saveBtn.style.marginLeft = "5px";
+
+    const cancelBtn = document.createElement("button");
+    cancelBtn.type = "button";
+    cancelBtn.innerText = "Cancel";
+    cancelBtn.className = "btn btn-secondary btn-sm";
+    cancelBtn.style.marginLeft = "5px";
+
+    cell.appendChild(input);
+    cell.appendChild(categorySelect);
+    cell.appendChild(saveBtn);
+    cell.appendChild(cancelBtn);
+
+    // ⭐ Save new product
+    saveBtn.onclick = async function () {
+        const name = input.value.trim();
+        const category = categorySelect.value;
+
+        if (!name) {
+            alert("Enter product name");
+            return;
+        }
+
+        const response = await fetch("/products/add_inline", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, category })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            const newOption = new Option(name, data.id);
+            selectElement.add(newOption, 2);
+
+            selectElement.value = data.id;
+
+            input.remove();
+            categorySelect.remove();
+            saveBtn.remove();
+            cancelBtn.remove();
+            selectElement.style.display = "block";
+
+            applyGST(selectElement);
+        } else {
+            alert("Error adding product");
+        }
+    };
+
+    cancelBtn.onclick = function () {
+        input.remove();
+        categorySelect.remove();
+        saveBtn.remove();
+        cancelBtn.remove();
+        selectElement.style.display = "block";
+        selectElement.value = "";
+    };
+}
+
+</script>
+
+{% endblock %}

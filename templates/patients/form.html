@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>{{ 'Edit Patient' if patient else 'Add Patient' }}</h2>
+
+<form method="post">
+    {{ form.hidden_tag() }}
+
+    <div style="max-width:500px;">
+
+        <div style="margin-bottom:15px;">
+            {{ form.name.label }}<br>
+            {{ form.name(class="form-control") }}
+        </div>
+
+        <div style="margin-bottom:15px;">
+            {{ form.phone.label }}<br>
+            {{ form.phone(class="form-control") }}
+        </div>
+
+        <div style="margin-bottom:15px;">
+            {{ form.address.label }}<br>
+            {{ form.address(class="form-control") }}
+        </div>
+
+        <div style="margin-bottom:15px;">
+            {{ form.description.label }}<br>
+            {{ form.description(class="form-control") }}
+        </div>
+
+    </div>
+
+    <div style="margin-top:10px;">
+        {{ form.submit(class="btn btn-primary") }}
+
+        {% if patient %}
+            <a href="{{ url_for('patients', id=patient.id) }}" style="margin-left:10px;">Cancel</a>
+        {% else %}
+            <a href="{{ url_for('patients') }}" style="margin-left:10px;">Cancel</a>
+        {% endif %}
+    </div>
+</form>
+
+{% endblock %}

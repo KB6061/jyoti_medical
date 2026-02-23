@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Search Products</h2>
+
+<form method="get" action="{{ url_for('product_search') }}" style="margin-bottom:15px;">
+    <input type="text" name="q" placeholder="Search by name, SKU, brand"
+           value="{{ q or '' }}"
+           style="padding:6px; width:260px;">
+    <button type="submit" style="padding:6px 12px; background:#005a9e; color:white; border:none; cursor:pointer;">
+        Search
+    </button>
+</form>
+
+<table border="0" cellpadding="6" cellspacing="0" style="width:100%; background:white; border-radius:8px; overflow:hidden;">
+    <thead style="background:#f1f1f1;">
+        <tr>
+            <th align="left">SKU</th>
+            <th align="left">Name</th>
+            <th align="left">Brand</th>
+            <th align="right">Stock</th>
+            <th align="right">Sale Price</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in products %}
+        <tr style="border-bottom:1px solid #eee;">
+            <td>{{ p.sku }}</td>
+            <td>{{ p.name }}</td>
+            <td>{{ p.brand or '-' }}</td>
+            <td align="right">{{ p.current_stock or 0 }}</td>
+            <td align="right">{{ "%.2f"|format(p.sale_price or 0) }}</td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="5" style="text-align:center; padding:15px; color:#777;">
+                No products found.
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

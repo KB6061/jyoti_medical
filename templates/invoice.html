@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+@media print {
+
+    /* Remove all spacing that causes second page */
+    body, html {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .content,
+    .layout,
+    .invoice-box {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Force invoice to stay on one page */
+    .invoice-box {
+        page-break-inside: avoid !important;
+    }
+
+    /* Hide UI */
+    .sidebar,
+    .topbar,
+    .fixed-footer,
+    .print-hide {
+        display: none !important;
+    }
+
+    @page {
+        margin: 5mm;
+    }
+}
+</style>
+
+
+<h2>Invoice {{ sale.invoice_no }}</h2>
+
+<div class="invoice-box" style="background:white; padding:15px; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+
+    <!-- HEADER -->
+    <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+        <div>
+            <h3>Jyoti Medical Store</h3>
+            <div style="font-size:13px; color:#555;">
+                Aurad-Basavakalyan Road, Mirkhal<br>
+                Basavakalyan, Karnataka - India (585416)<br>
+                Phone: +919663694243
+            </div>
+        </div>
+
+        <div style="text-align:right; font-size:13px; color:#555;">
+            <div><strong>Invoice:</strong> {{ sale.invoice_no }}</div>
+            <div><strong>Date:</strong> {{ sale.date.strftime("%Y-%m-%d %H:%M") }}</div>
+        </div>
+    </div>
+
+    <!-- CUSTOMER -->
+    <div style="margin-bottom:15px; font-size:14px;">
+        <strong>Bill To:</strong><br>
+        {% if customer %}
+            {{ customer.name }}<br>
+            {{ customer.address or '' }}<br>
+            {{ customer.phone or '' }}
+        {% else %}
+            Walk-in Customer
+        {% endif %}
+    </div>
+
+    <!-- ITEMS TABLE -->
+    <table border="0" cellpadding="6" cellspacing="0" style="width:100%; border-collapse:collapse; margin-bottom:10px;">
+        <thead style="background:#f1f1f1;">
+            <tr>
+                <th align="left">Item</th>
+                <th align="right">Qty</th>
+                <th align="right">Unit Price</th>
+                <th align="right">Discount</th>
+                <th align="right">Total</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% set grand = 0 %}
+            {% for it in items %}
+            {% set line = (it.qty or 0) * (it.unit_price or 0) - (it.discount or 0) %}
+            {% set grand = grand + line %}
+
+            <tr style="border-bottom:1px solid #eee;">
+                <td>{{ it.product.name }}</td>
+                <td align="right">{{ it.qty }}</td>
+                <td align="right">{{ "%.2f"|format(it.unit_price or 0) }}</td>
+                <td align="right">{{ "%.2f"|format(it.discount or 0) }}</td>
+                <td align="right">{{ "%.2f"|format(line) }}</td>
+            </tr>
+
+            {% endfor %}
+        </tbody>
+
+        <tfoot>
+            <tr>
+                <td colspan="4" align="right"><strong>Total:</strong></td>
+                <td align="right"><strong>{{ "%.2f"|format(grand_total) }}</strong></td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <!-- BUTTONS (HIDDEN IN PRINT) -->
+    <div class="print-hide" style="text-align:right; margin-top:10px;">
+        <button onclick="window.print()" style="padding:6px 12px; background:#005a9e; color:white; border:none; cursor:pointer;">
+            Print
+        </button>
+
+        <a href="{{ url_for('invoice_pdf', sale_id=sale.id) }}" class="btn btn-success" style="margin-left:10px;">
+            Download PDF
+        </a>
+
+        <a href="{{ url_for('sales_list') }}" style="margin-left:10px;">Back to Sales</a>
+    </div>
+
+</div>
+
+{% endblock %}

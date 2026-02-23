@@ -1,0 +1,4 @@
+Medical Store Management Software
+Version 1.0.0
+Developed by Krishna Bhandare
+All rights reserved.

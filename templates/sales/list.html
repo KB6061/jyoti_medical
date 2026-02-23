@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Sales</h2>
+
+<!-- Search + New Sale -->
+<div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+
+    <!-- Search Form -->
+    <form method="GET" action="{{ url_for('sales_search') }}" style="display:flex; gap:10px;">
+        <input type="text"
+               name="q"
+               placeholder="Search invoice, customer"
+               value="{{ request.args.get('q', '') }}"
+               class="form-control"
+               style="width:250px;">
+        <button class="btn btn-primary">Search</button>
+    </form>
+
+    <!-- New Sale Button -->
+	<a href="{{ url_for('sales_new') }}"
+       		class="btn btn-success">
+    		+ New Sale
+	</a>
+
+</div>
+
+<table border="0" cellpadding="6" cellspacing="0" style="width:100%; background:white; border-radius:8px; overflow:hidden;">
+    <thead style="background:#f1f1f1;">
+        <tr>
+            <th align="left">Invoice</th>
+            <th align="left">Customer</th>
+            <th align="left">Date</th>
+            <th align="right">Total</th>
+            <th align="center">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for s in sales %}
+        <tr style="border-bottom:1px solid #eee;">
+            <td>{{ s.invoice_no }}</td>
+
+            <td>
+                {% if s.customer_id %}
+                    {{ s.customer_id }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+
+            <td>{{ s.date.strftime("%Y-%m-%d %H:%M") }}</td>
+            <td align="right">{{ "%.2f"|format(s.total or 0) }}</td>
+
+            <td align="center">
+
+                <!-- View Invoice -->
+                <a href="{{ url_for('invoice_view', sale_id=s.id) }}"
+                   class="btn btn-info btn-sm">View</a>
+
+                <!-- Edit Sale -->
+                {% if current_user.role in ['admin', 'staff'] %}
+                <a href="{{ url_for('sale_edit', sale_id=s.id) }}"
+                   class="btn btn-warning btn-sm">Edit</a>
+                {% endif %}
+
+                <!-- Delete Sale -->
+                {% if current_user.role in ['admin', 'staff'] %}
+                <form action="{{ url_for('sale_delete', sale_id=s.id) }}"
+                      method="POST"
+                      style="display:inline;">
+                    <button class="btn btn-danger btn-sm"
+                            onclick="return confirm('Delete this sale?');">
+                        Delete
+                    </button>
+                </form>
+                {% endif %}
+
+            </td>
+        </tr>
+
+        {% else %}
+        <tr>
+            <td colspan="5" style="text-align:center; padding:15px; color:#777;">
+                No sales found.
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

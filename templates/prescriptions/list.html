@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Prescriptions for {{ patient.name }}</h2>
+
+<div style="margin-bottom:15px;">
+    <a href="{{ url_for('prescriptions_new', patient_id=patient.id) }}" class="btn btn-success">+ New Prescription</a>
+    <a href="{{ url_for('patients', id=patient.id) }}" style="margin-left:10px;">Back to Patient</a>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th align="left">Date</th>
+            <th align="left">Doctor</th>
+            <th align="left">Diagnosis</th>
+            <th align="left">Notes</th>
+            {% if is_admin() %}
+            <th align="center">Actions</th>
+            {% endif %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in prescriptions %}
+        <tr>
+            <td>{{ p.date.strftime("%Y-%m-%d %H:%M") }}</td>
+            <td>
+                {% if p.doctor_id and doctors.get(p.doctor_id) %}
+                    {{ doctors[p.doctor_id].name }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+            <td>{{ p.diagnosis or '-' }}</td>
+            <td>{{ p.notes or '-' }}</td>
+
+            {% if is_admin() %}
+            <td align="center">
+                <form method="post" action="{{ url_for('prescription_delete', pres_id=p.id) }}" style="display:inline;">
+                    <button class="btn btn-danger btn-sm">Delete</button>
+                </form>
+            </td>
+            {% endif %}
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="5" style="text-align:center; padding:15px; color:#777;">No prescriptions found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
