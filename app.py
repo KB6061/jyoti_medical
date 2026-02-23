@@ -5,7 +5,6 @@ from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 
 from models import db, Product, Distributor, Purchase, PurchaseItem  # adjust import path
-
 def safe_commit(retries=5, delay=0.2):
     """
     Attempts to commit the session, retrying if the database is locked.
@@ -93,6 +92,7 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 
 app.config['SQLALCHEMY_DATABASE_URI']
 app.config['SECRET_KEY'] = secrets.token_hex(16)
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
 
 db.init_app(app)
 
