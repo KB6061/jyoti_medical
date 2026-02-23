@@ -344,7 +344,7 @@ def login():
             login_user(user)
             return redirect(url_for('dashboard'))
 
-        flash('Invalid credentials', 'danger')
+        flash('Invalid credentials', 'popup')
 
     return render_template('auth/login.html', form=form)
 
@@ -395,7 +395,7 @@ def forgot():
             logger.info("Generated OTP for %s: %s", user.username, code)
             return redirect(url_for('reset_otp'))
 
-        flash('User ID not found', 'danger')
+        flash('User ID not found', 'popup')
 
     return render_template('auth/forgot.html', form=form)
 
@@ -414,7 +414,7 @@ def reset_otp():
         user = User.query.filter_by(username=form.username.data).first()
 
         if not user:
-            flash('Invalid User ID', 'danger')
+            flash('Invalid User ID', 'popup')
             return redirect(url_for('forgot'))
 
         otp = OTPCode.query.filter_by(
