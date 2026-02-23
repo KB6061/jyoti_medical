@@ -340,13 +340,14 @@ def login():
         user = User.query.filter_by(username=form.username.data).first()
 
         if user and check_password_hash(user.password_hash, form.password.data):
-            session.permanent = False   # <-- correct indentation
+            session.permanent = False
             login_user(user)
             return redirect(url_for('dashboard'))
 
         flash('Invalid credentials', 'danger')
 
     return render_template('auth/login.html', form=form)
+
 
 
 
@@ -2281,5 +2282,4 @@ if __name__ == '__main__':
     initialize_database()
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
 
